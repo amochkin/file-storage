@@ -15,6 +15,7 @@ env:
   REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
   IMAGE_NAME: ghcr.io/${{ github.repository }}
   PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+  SLASH_REPLACEMENT: '-'
 
 jobs:
   prepare:
@@ -60,7 +61,7 @@ jobs:
           script: |
             const platforms = process.env.PLATFORMS?.split(",") || [];
             return platforms.map(platform => {
-              return process.env.IMAGE + ':' + platform.replace("/", "_");
+              return process.env.IMAGE + ':' + platform.replace("/", "${{ env.SLASH_REPLACEMENT }}");
             });        
 
       - name: Read version from package.json with fallback
@@ -89,7 +90,7 @@ jobs:
     steps:
       - name: Setup environment variables
         run: |
-          echo "TAG=${{ matrix.platform }}" | tr "/" "_" >> $GITHUB_ENV
+          echo "TAG=${{ matrix.platform }}" | tr "/" "${{ env.SLASH_REPLACEMENT }}" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -102,10 +103,8 @@ jobs:
           password: ${{ env.REGISTRY_PASSWORD }}
 
       ### Setup BuildX so we can build for multiple platforms
-      - name: Set up Docker Buildx
+      - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v2
-        with:
-          buildkitd-flags: --debug
 
       ### Build and push the image
       - name: Build Docker image for ${{ matrix.platform }}
@@ -121,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGES: ${{ join(fromJson(needs.build.outputs.images), ' ') }}
+      IMAGES: ${{ join(fromJson(needs.prepare.outputs.images), ' ') }}
 
     steps:
       - name: Log in to the Container registry
