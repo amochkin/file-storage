@@ -91,3 +91,32 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           tags: ${{ join(steps.meta.outputs.tags) }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  manifest:
+    runs-on: ubuntu-latest
+    needs: build-push
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List images
+        run: |
+          echo "${{ jobs.build-push.outputs.matrix.platform }}"
+#            docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/amd64 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/arm64 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/arm/v7 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/arm/v6
+##            docker manifest annotate ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/arm64 --os linux --arch arm64
+##            docker manifest annotate ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/arm/v7 --os linux --arch arm --variant v7
+##            docker manifest annotate ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:linux/arm/v6 --os linux --arch arm --variant v6
+#            docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
