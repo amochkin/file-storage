@@ -115,7 +115,7 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            console.log("Debug: %o", {globals: Object.keys(this), context});
+            console.log("Debug: %o", {globals: this, context});
 #
 #        run: |
 #          echo "${{ needs.build.outputs }}"
