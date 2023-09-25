@@ -23,6 +23,7 @@ import { createReadStream } from 'fs';
 import { validate } from 'class-validator';
 import { authConfig } from '../auth/config/config';
 import { DummyGuard } from '../auth/dummy.guard';
+import { Response } from 'express';
 
 @Controller('files')
 @ApiTags('files')
@@ -43,17 +44,19 @@ export class FilesController {
 	})
 	@Get(':id')
 	async getFile(
-		@Res({ passthrough: true }) res,
+		@Res({ passthrough: true }) res: Response,
 		@Param() params: FileRetrieveParams,
 		@Query() args: FileRetrieveArgs,
 	): Promise<StreamableFile> {
+		const fileId = params.id;
+
 		// let's do forced validation of the params
-		const validationErrors = await validate(new FileRetrieveParams(params.id));
+		const validationErrors = await validate(new FileRetrieveParams(fileId));
 		if (validationErrors.length > 0) {
 			throw new BadRequestException(validationErrors, 'Bad parameters');
 		}
 
-		const metadata = await this.service.retrieveFile(params.id, Number(args.thumb || 0));
+		const metadata = await this.service.retrieveFile(fileId, Number(args.thumb) || 0);
 
 		res.set({
 			'Content-Type': metadata.contentType,
