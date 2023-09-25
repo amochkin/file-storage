@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import { Test } from '@nestjs/testing';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
-import { StreamableFile } from '@nestjs/common';
 import * as path from 'path';
 
 const validFileId = '1a2b3c4d5e6f7890';
@@ -13,6 +12,7 @@ process.env.FILES_UPLOAD_DIR = uploadDir;
 
 describe('Files', () => {
 	let controller: FilesController;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	let service: FilesService;
 
 	beforeAll(async () => {
@@ -29,6 +29,7 @@ describe('Files', () => {
 	jest.spyOn(fs, 'existsSync').mockImplementation((filePath: string) => {
 		if (filePath.includes(validFileId)) {
 			const fileId = path.basename(filePath, '.json');
+			// eslint-disable-next-line no-console
 			console.debug('existsSync', fileId);
 			return fileId === validFileId;
 		} else {
@@ -36,10 +37,10 @@ describe('Files', () => {
 		}
 	});
 
-	jest.spyOn(fs, 'readFileSync').mockImplementation((fileName) => null);
+	jest.spyOn(fs, 'readFileSync').mockImplementation(() => null);
 
 	it('malformed id', async () => {
-		await expect(controller.getFile([], { id: invalidFileId }, { thumb: 0 })).rejects.toThrowError();
+		await expect(controller.getFile(<never>{}, { id: invalidFileId }, { thumb: 0 })).rejects.toThrowError();
 	});
 
 	// it('retrieve a file', async () => {
